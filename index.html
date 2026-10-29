@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>💰 Monthly Expense Tracker Pro</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Inter,system-ui;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);margin:0;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:15px}
+.card{background:white;padding:26px;border-radius:20px;box-shadow:0 20px 40px #0003;width:100%;max-width:380px;animation:pop .3s}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+h2{margin:0;text-align:center;font-size:19px}
+input,select{width:100%;padding:12px;border:1.5px solid #e2e8f0;border-radius:12px;margin-top:10px;font-size:14px;outline:none}
+input:focus{border-color:#667eea}
+input.error{border-color:#ef4444 !important;background:#fef2f2;animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+button{width:100%;padding:13px;background:linear-gradient(90deg,#0f172a,#334155);color:white;border:none;border-radius:12px;margin-top:12px;font-weight:700;cursor:pointer}
+.btn2{background:#f8fafc;color:#0f172a;border:1.5px solid #e2e8f0}
+.link{font-size:13px;color:#667eea;cursor:pointer;text-align:right;margin-top:8px;display:block;font-weight:600}
+.hidden{display:none !important}
+.dash{max-width:420px !important}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}
+.stat{background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:14px;border-radius:14px;text-align:center}
+.stat b{font-size:18px;display:block}
+.stat span{font-size:11px;opacity:.9}
+.stat2{background:linear-gradient(135deg,#f59e0b,#ef4444)}
+.row{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f8fafc;border-radius:12px;margin-top:8px}
+.cat{width:36px;height:36px;border-radius:10px;display:flex;justify-content:center;align-items:center;font-size:16px;margin-right:10px}
+.budgetBox{background:#f1f5f9;padding:12px;border-radius:12px;margin:12px 0;display:flex;gap:8px}
+.progress{height:10px;background:#e2e8f0;border-radius:20px;overflow:hidden;margin-top:8px}
+.progressBar{height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);transition:.5s}
+.insight{background:#fffbeb;border:1px solid #fde68a;padding:10px;border-radius:12px;font-size:12px;margin-top:10px;color:#92400e}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#0f172a;color:white;padding:12px 20px;border-radius:30px;font-size:13px;font-weight:600;box-shadow:0 10px 25px #0004;z-index:9999;animation:toastPop .4s}
+.toast.warn{background:linear-gradient(90deg,#f59e0b,#d97706)}
+.toast.danger{background:linear-gradient(90deg,#ef4444,#dc2626)}
+@keyframes toastPop{from{transform:translateX(-50%) translateY(-20px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+.welcomeCard{background:white;padding:40px 30px;border-radius:24px;text-align:center;animation:popUp .5s;box-shadow:0 20px 60px #0005}
+@keyframes popUp{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+<div id="toastBox"></div>
+
+<div id="welcomeScreen" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#667eea,#764ba2);justify-content:center;align-items:center;z-index:99999">
+  <div class="welcomeCard">
+    <div style="font-size:52px">💰</div>
+    <h2 id="welcomeText">Welcome Mava!</h2>
+    <p style="color:#64748b;font-size:14px;margin:6px 0 0">Track chey - Save chey!</p>
+  </div>
+</div>
+
+<div id="auth" class="card">
+<h2>💰 Monthly Expense Tracker Pro</h2>
+<input id="email" placeholder="Email">
+<input id="pass" type="password" placeholder="Password">
+<span id="forgotLink" class="link" onclick="showForgot()">Forgot Password?</span>
+<button id="mainBtn" onclick="handleAuth()">Login</button>
+<button class="btn2" id="switchBtn" onclick="toggle()">New user? Signup</button>
+</div>
+
+<div id="forgotBox" class="card hidden">
+<h2>💰 Reset Password</h2>
+<input id="fEmail" placeholder="Enter your email">
+<input id="fPass" type="password" placeholder="New Password">
+<button onclick="resetPass()">Reset Password</button>
+<button class="btn2" onclick="backLogin()">Back to Login</button>
+</div>
+
+<div id="tracker" class="card dash hidden">
+<h2>💰 Monthly Expenses</h2>
+<div class="stats">
+<div class="stat"><span>Total Spent</span><b id="totalTop">₹0</b></div>
+<div class="stat stat2"><span>Transactions</span><b id="countTop">0</b></div>
+</div>
+<div class="budgetBox">
+<input id="budgetInput" type="number" placeholder="Set Monthly Budget ₹" style="margin:0">
+<button onclick="setBudget()" style="width:80px;margin:0">Set</button>
+</div>
+<div class="progress"><div id="progressBar" class="progressBar" style="width:0%"></div></div>
+<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:4px;color:#64748b">
+<span id="budgetText">Budget: ₹10000</span><span id="percentText">0%</span>
+</div>
+<div id="insightBox" class="insight hidden"></div>
+<select id="cat">
+<option value="🛍️ Shopping">🛍️ Shopping</option>
+<option value="🍔 Food">🍔 Food</option>
+<option value="🚕 Travel">🚕 Travel</option>
+<option value="📚 Education">📚 Education</option>
+<option value="💡 Bills">💡 Bills</option>
+<option value="🎮 Fun">🎮 Fun</option>
+</select>
+<input id="item" placeholder="What you bought?" oninput="this.classList.remove('error')">
+<input id="amt" type="number" placeholder="Amount ₹" oninput="this.classList.remove('error')">
+<button onclick="addExp()">+ Add Expense</button>
+<div id="list" style="margin-top:14px;max-height:240px;overflow:auto"></div>
+<div style="text-align:center;margin-top:12px">
+<h3 id="total" style="margin:0"></h3>
+<button onclick="logout()" style="background:#fee2e2;color:#ef4444;border:1px solid #fecaca">Logout</button>
+</div>
+</div>
+
+<script>
+function showToast(msg,type){
+ let box=document.getElementById('toastBox');
+ let div=document.createElement('div');
+ div.className='toast '+type;
+ div.textContent=msg;
+ box.appendChild(div);
+ setTimeout(()=>div.remove(),3000);
+}
+function showWelcome(){
+ let ws=document.getElementById('welcomeScreen');
+ let wt=document.getElementById('welcomeText');
+ wt.textContent="Welcome "+(currentUser.split('@')[0])+"! 👋";
+ ws.style.display='flex';
+ setTimeout(()=>{ ws.style.display='none'; }, 2200);
+}
+let mode="login";
+let users=JSON.parse(localStorage.getItem('users')||'{}');
+let currentUser=localStorage.getItem('currentUser');
+function toggle(){
+if(mode=="login"){mode="signup";mainBtn.textContent="Signup";switchBtn.textContent="Existing user? Login";forgotLink.style.display='none';}
+else{mode="login";mainBtn.textContent="Login";switchBtn.textContent="New user? Signup";forgotLink.style.display='block';}
+}
+function handleAuth(){
+let e=email.value.trim().toLowerCase(), p=pass.value;
+if(!e||!p){showToast("Enter email & password","danger");return;}
+if(mode=="signup"){
+if(users[e]){showToast("Account exists - Login","warn");return;}
+users[e]=p; localStorage.setItem('users',JSON.stringify(users)); showToast("Account created mava! 🎉",""); toggle();
+}else{
+if(users[e]==p){currentUser=e; localStorage.setItem('currentUser',e); openTracker(); }
+else{showToast("Invalid credentials","danger");}
+}
+}
+function showForgot(){auth.classList.add('hidden');forgotBox.classList.remove('hidden');}
+function backLogin(){forgotBox.classList.add('hidden');auth.classList.remove('hidden');}
+function resetPass(){
+let e=fEmail.value.trim().toLowerCase(), p=fPass.value;
+if(!e||!p){showToast("Enter both","danger");return;}
+if(!users[e]){showToast("No account found","danger");return;}
+users[e]=p; localStorage.setItem('users',JSON.stringify(users)); showToast("Password updated! ✅",""); backLogin();
+}
+function openTracker(){
+ auth.classList.add('hidden'); forgotBox.classList.add('hidden');
+ tracker.classList.remove('hidden'); loadExp(); loadBudget(); showWelcome();
+}
+let exps=[]; let BUDGET=10000; let lastPercent=0;
+function loadBudget(){BUDGET=parseInt(localStorage.getItem('budget_'+currentUser)||'10000'); budgetInput.value=BUDGET; budgetText.textContent="Budget: ₹"+BUDGET;}
+function setBudget(){if(!budgetInput.value) return; BUDGET=parseInt(budgetInput.value); localStorage.setItem('budget_'+currentUser,BUDGET); loadBudget(); showExp(); showToast("Budget set ₹"+BUDGET+" ✅","");}
+function loadExp(){exps=JSON.parse(localStorage.getItem('exp_'+currentUser)||'[]'); lastPercent=0; showExp();}
+function addExp(){
+let name=item.value.trim(); let price=amt.value.trim(); let hasError=false;
+item.classList.remove('error'); amt.classList.remove('error');
+if(name==""){item.classList.add('error'); hasError=true;}
+if(price==""||Number(price)<=0){amt.classList.add('error'); hasError=true;}
+if(hasError) return;
+exps.push({i:name,a:Number(price),c:cat.value}); localStorage.setItem('exp_'+currentUser,JSON.stringify(exps));
+item.value=""; amt.value=""; showToast("Added ₹"+price+" ✅",""); showExp();
+}
+function showExp(){
+let t=0; list.innerHTML=""; let catCount={};
+exps.slice().reverse().forEach((e,idxRev)=>{
+let idx=exps.length-1-idxRev; t+=e.a; catCount[e.c]=(catCount[e.c]||0)+e.a;
+let color=e.c.includes('Shopping')?'#fef3c7':e.c.includes('Food')?'#dcfce7':e.c.includes('Travel')?'#dbeafe':'#f3e8ff';
+list.innerHTML+=`<div class=row><div style="display:flex;align-items:center"><div class=cat style="background:${color}">${e.c.split(' ')[0]}</div><div><b style="font-size:13px">${e.i}</b><div style="font-size:11px;color:#64748b">${e.c}</div></div></div><div style="text-align:right"><b>₹${e.a}</b><div><span onclick="delExp(${idx})" style="color:#ef4444;cursor:pointer;font-size:12px">Remove</span></div></div></div>`;
+});
+totalTop.textContent="₹"+t; countTop.textContent=exps.length;
+let percent=BUDGET>0?Math.min(100,Math.round((t/BUDGET)*100)):0;
+progressBar.style.width=percent+"%"; percentText.textContent=percent+"% used";
+if(percent>=100){progressBar.style.background="linear-gradient(90deg,#ef4444,#dc2626)"; insightBox.classList.remove('hidden'); insightBox.innerHTML="🚨 <b>Budget Over!</b> Control chey mava!"; if(lastPercent<100) showToast("🚨 Budget Over! ₹"+t+" / ₹"+BUDGET,"danger");}
+else if(percent>=80){progressBar.style.background="linear-gradient(90deg,#f59e0b,#d97706)"; insightBox.classList.remove('hidden'); insightBox.innerHTML="⚠️ <b>80% ayipoyindi!</b> Slow chey!"; if(lastPercent<80) showToast("⚠️ 80% ayipoyindi!","warn");}
+else{progressBar.style.background="linear-gradient(90deg,#22c55e,#16a34a)"; if(exps.length>0){let topCat=Object.keys(catCount).reduce((a,b)=>catCount[a]>catCount[b]?a:b); insightBox.classList.remove('hidden'); insightBox.innerHTML="💡 <b>Insight:</b> Ekkuva <b>"+topCat+"</b> meedha - ₹"+catCount[topCat];} else {insightBox.classList.add('hidden');}}
+lastPercent=percent; total.textContent=exps.length?"":"No expenses yet!";
+}
+function delExp(i){exps.splice(i,1); localStorage.setItem('exp_'+currentUser,JSON.stringify(exps)); showExp(); showToast("Removed","");}
+function logout(){localStorage.removeItem('currentUser'); location.reload();}
+if(currentUser && users[currentUser]) openTracker();
+</script>
+</body>
+</html>
